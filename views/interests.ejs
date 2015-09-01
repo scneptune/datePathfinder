@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<%- include head_tem.ejs %>
+	<div class="row">
+				<div class="col-sm-8 col-sm-offset-2">
+					<form action="/start" method="post" type="application/x-www-form-urlencoded">
+					<div class="panel-group" id="interestacts" role="tablist" aria-multislectable="true">
+						<div class="panel panel-default" >
+							<div class="panel-heading" role="tab" id="ActOne">
+								<h4 class="panel-title">
+									<a role="button" href="#actOnePanel" data-toggle="collapse" data-parent="#interestacts" aria-expanded="true" aria-controls="actOnePanel"> Act I </a>
+								</h4>
+							</div>
+							<div id="actOnePanel" class="panel-collapse collapse in" role="tabpanel" aria-labeledby="ActOne">
+								<div class="panel-body text-center">
+									<p>Please pick <strong>only</strong> two categories in the buttons below.</p>
+									<br />
+									<div class="btn-group" data-toggle="buttons">
+										<label class="btn btn-success">
+											<input type="checkbox" autocomplete="off" value="adventure" /> Adventurous
+										</label>
+										<label class="btn btn-info">
+											<input type="checkbox" autocomplete="off" value="intellectual" /> Intellectual
+										</label>
+										<label class="btn btn-warning">
+											<input type="checkbox" autocomplete="off" value="relaxing" /> Relaxing
+										</label>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="panel panel-default" >
+							<div class="panel-heading" role="tab" id="ActTwo">
+								<h4 class="panel-title">
+									<a role="button" href="#actTwoPanel" data-toggle="collapse" data-parent="#interestacts" aria-expanded="true" aria-controls="actTwoPanel"> Act II </a>
+								</h4>
+							</div>
+							<div id="actTwoPanel" class="panel-collapse collapse" role="tabpanel" aria-labeledby="ActTwo">
+								<div class="panel-body">
+									<div class="row">
+										<div class="col-sm-6">
+											<p>What is your spending tolerance on food for this date?</p>
+											<div class="clearfix">
+												<label class="radio-inline">
+												  <input type="radio" name="spending" value="1"> <strong>$</strong>
+												</label>
+												<label class="radio-inline">
+												  <input type="radio" name="spending" value="2"> <strong>$$</strong>
+												</label>
+												<label class="radio-inline">
+												  <input type="radio" name="spending" value="3"> <strong>$$$</strong>
+												</label>
+											</div>
+											<br />
+											<p>What type of food adventures do you normally seek?</p>
+											<div class="clearfix">
+												<label>
+													<input type="checkbox" name="restaurant_type" value="classic" /> Classic Dinning
+												</label>
+												<label>
+													<input type="checkbox" name="restaurant_type" value="ethnic" /> Ethnic / Exotic Dining
+												</label>
+												<label>
+													<input type="checkbox" name="restaurant_type" value="cafe" /> Cafe / Quick Coffee
+												</label>
+											</div>
+										</div>
+										<div class="col-sm-6">
+											<p>How far would you be willing to travel from the first act of your date?</p>
+											<div class="clearfix">
+												<label>
+													<input type="radio" name="actIIdistance" value="" /> &lt;1-2 miles
+												</label>
+												<label>
+													<input type="radio" name="actIIdistance" value="" />  2-5 miles
+												</label>
+												<label>
+													<input type="radio" name="actIIdistance" value="" /> 5-10+ miles
+												</label>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="panel panel-default" >
+							<div class="panel-heading" role="tab" id="ActThree">
+								<h4 class="panel-title">
+									<a role="button" href="#actThreePanel" data-toggle="collapse" data-parent="#interestacts" aria-expanded="true" aria-controls="actThreePanel"> Act III </a>
+								</h4>
+							</div>
+							<div id="actThreePanel" class="panel-collapse collapse" role="tabpanel" aria-labeledby="ActThree">
+								<div class="panel-body">
+
+								</div>
+							</div>
+						</div>
+					</div>
+					</form>
+				</div>
+	</div>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.2.min.js"></script>
+    <script type="text/javascript" src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+    <script type="text/javascript">
+		categoryBtns = $('#actOnePanel input[type="checkbox"]');
+		checked = [];
+		categoryBtns.on('change', function (e) {
+			if ($(e.target).prop('checked')) {
+				checked.push($(e.target));
+				if (checked.length === 2 ) {
+					$('#ActTwo a').click();
+				}
+				if (checked.length > 2) {
+					$(checked.shift()).prop('checked', false).parents().toggleClass('active');
+				}
+			} else {
+				indexToDrop = checked.indexOf($(e.target));
+				if (indexToDrop > -1) {
+					checked.splice(1, indexToDrop);
+				}
+			}
+		});
+	</script>
+    <script type="text/javascript" src="//localhost:35729/livereload.js"></script>
+</div>
+<!--end of container -->
+</body>
+</html>
