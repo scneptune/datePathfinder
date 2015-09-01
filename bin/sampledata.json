@@ -1,0 +1,38 @@
+{
+	"name": "JERRY MCGUIRE",
+	"email": "showme@themoney.com",
+	"address": "985 W. Kensignton Rd.",
+	"city": "Los Angeles",
+	"location": {
+		"lat": 34.0739427,
+		"lng": -118.25646280000001
+	},
+	"preferences": {
+		"tags" : ["outdoorsy", "historical", "educational"],
+		"movie": true,
+		"show": false
+	},
+	"date_result": {
+		"act1": {
+			"loc_id": "",
+			"loc_name" : "",
+			"loc_desc": "long_char",
+			"lat": "",
+			"long": ""
+		},
+		"act2": {
+			"loc_id": "",
+			"loc_name" : "",
+			"loc_desc": "long_char",
+			"lat": "",
+			"long": ""
+		},
+		"act3": {
+			"loc_id": "",
+			"loc_name" : "",
+			"loc_desc": "long_char",
+			"lat": "",
+			"long": ""
+		}
+	}
+}
