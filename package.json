@@ -12,12 +12,13 @@
     "express": "~4.13.1",
     "less-middleware": "1.0.x",
     "morgan": "~1.6.1",
-    "serve-favicon": "~2.3.0"
+    "serve-favicon": "~2.3.0",
+    "yelp": "^0.2.0"
   },
   "devDependencies": {
     "bootstrap": "^3.3.5",
     "chai": "^3.2.0",
-    "connect-mongodb-session": "^1.0.5",
+    "connect-mongo": "^0.8.2",
     "express-session": "^1.11.3",
     "grunt": "~0.4.5",
     "grunt-cli": "^0.1.13",
@@ -31,6 +32,14 @@
     "grunt-mocha-test": "^0.12.7",
     "mocha": "^2.3.0",
     "mongodb": "^2.0.42",
+    "mongoose": "^4.1.5",
+    "node-env-file": "^0.1.7",
+    "oauth": "^0.9.13",
+    "pixl-json-stream": "^1.0.1",
+    "q": "^1.4.1",
+    "querystring": "^0.2.0",
+    "sinon": "^1.16.1",
+    "sinon-chai": "^2.8.0",
     "strawman": "0.0.1",
     "supertest": "^1.1.0"
   }
