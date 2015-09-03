@@ -1,13 +1,20 @@
-var express = require('express');
-var path = require('path');
-var favicon = require('serve-favicon');
-var logger = require('morgan');
-var cookieParser = require('cookie-parser');
-var bodyParser = require('body-parser');
+ var env = require('node-env-file');
+    //call in our secret env
+    env(__dirname + '/.env');
+var fs = require('fs'),
+    express = require('express'),
+    path = require('path'),
+    logger = require('morgan'),
+    cookieParser = require('cookie-parser'),
+    bodyParser = require('body-parser');
+
+var mongoose = require('mongoose');
 var session = require('express-session');
-var MongoDBSession = require('connect-mongodb-session')(session);
+var MongoDBSession = require('connect-mongo')(session);
+
 var routes = require('./routes/index');
 var users = require('./routes/users');
+
 
 var app = express();
 
@@ -15,36 +22,29 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-
-// uncomment after placing your favicon in /public
-//app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+mongoose.connect(process.env.MONGO_ADDRESS);
+
 //Mongodb session storing
-SessionStore = new MongoDBSession({
-  uri: 'mongodb://localhost:27017/dateapp',
-  collection: 'users'
-});
-
-SessionStore.on('error', function (error) {
-  assert.ifError(error);
-  assert.ok(false);
-});
-
 app.use(session({
   secret: 'dateApp',
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 //1 day
   },
-  store: SessionStore,
+  store: new MongoDBSession({
+    mongooseConnection: mongoose.connection
+  }),
   resave: true,
   saveUninitialized: false
 }));
 
+//serve static files out of public
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 app.use('/', routes);
 app.use('/users', users);
