@@ -14,6 +14,7 @@ var stream = new JSONStream(childProcess.stdout, childProcess.stdin);
 
 stream.on('json', function (data) {
 	console.log(data);
+	childProcess.kill();
 });
 
 var sampleSearch = {
@@ -24,10 +25,10 @@ var sampleSearch = {
 stream.write(sampleSearch);
 
 // Listen for any errors:
-childProcess.stderr.on('data', function (data) {
+childProcess.stderr.on('end', function (data) {
     console.log('There was an error: ' + data);
 });
 
-// childProcess.stdout.on('end', function (err) {
-// 	childProcess.kill();
-// })
+childProcess.stdout.on('end', function (err) {
+	childProcess.kill();
+})
