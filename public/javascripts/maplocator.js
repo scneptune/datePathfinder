@@ -21,7 +21,7 @@ var map, geoCoder, infoWindow,
         }, function (err) {
           console.log(err);
           geoLocationModalFail(map.getCenter());
-        });
+        }, {timeout: 30000, enableHighAccuracy: true, maximumAge: 75000});
       } else {
         geoLocationModalFail(map.getCenter());
       }
