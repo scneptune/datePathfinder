@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+	<%- include head_tem.ejs %>
+  		<div class="row">
+  			<div class="panel panel-default col-sm-8 col-sm-offset-2">
+  				<h2 class="panel-heading"> Act Matrix/Tag Adding System</h2>
+  				<form method="post" action="/set_acts" class="panel-body" type="application/x-www-form-urlencoded">
+  					<div class="col-sm-12">
+	  					<div class="form-group">
+	  						<input type="text" class="form-control" placeholder="The Name of this Act" name="category" />
+	  					</div>
+	  					<div class="form-group">
+		  					<textarea class="form-control" name="desc">Some Mumbo Jumbo about this category</textarea>
+	  					</div>
+	  					<div class="row clearfix">
+		  					<div class="col-sm-12">
+		  						<button class="add_tags btn btn-info col-sm-4 col-sm-push-8"> Add Addtional Tags</button>
+		  					</div>
+	  					</div>
+	  					<br />
+	  					<div class="clearfix dynamicTags">
+	  						<div class="form-group">
+	  							<input class="form-control" type="text" name="filterTags[]" placeholder="lowercase only tag value.." />
+	  						</div>
+	  					</div>
+	  					<input type="submit" class="btn btn-success col-sm-12" value="Submit Matrix">
+  					</div>
+  				</form>
+  			</div>
+  		</div>
+
+  	</div> <!--end of container -->
+  	<script type="text/javascript" src="https://code.jquery.com/jquery-2.1.2.min.js"></script>
+    <script src="//localhost:35729/livereload.js"></script>
+    <script type="text/javascript">
+		$(document).ready(function() {
+			var wrapper = $('.dynamicTags');
+			var add_more = $('.add_tags');
+			fieldMarkup = '<div class="input-group" style="margin-bottom: 20px;">' +
+      			'<input type="text" name="filterTags[]" class="form-control" placeholder="lowercase only tag value..">' +
+      			'<span class="input-group-btn">' +
+        		'<button class="btn btn-danger" type="button">Remove</button>' +
+      			'</span></div>';
+			$(add_more).click(function(e) {
+				e.preventDefault();
+				$(wrapper).append(fieldMarkup);
+			});
+			$(wrapper).on('click', '.btn-danger', function (e) {
+				e.preventDefault();
+				$(this).parent().parent().remove();
+			});
+		});
+  	</script>
+  </body>
+</html>
