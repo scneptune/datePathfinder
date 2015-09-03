@@ -9,15 +9,19 @@ var chai = require('chai'),
 	expect = chai.expect,
 	assert = chai.assert;
 	chai.config.includeStack = true;
+	var sinon = require('sinon');
+	var sinonChai = require("sinon-chai");
 	chai.should();
+	chai.use(sinonChai);
 
 //libs for mockingexit
+
 var express = require('express'),
 	request = require('supertest'),
 	cookieParser = require('cookie-parser'),
 	session = require('express-session'),
 	strawman = require('strawman'),
-	mongoSession = require('connect-mongodb-session')(session),
+	mongoSession = require('connect-mongo')(session),
 	fs = require('fs');
 var http = require('http');
 var https = require('https');
@@ -56,6 +60,16 @@ describe('It should connect to a page', function () {
 
 	});
 
+	it('run yelpFetch and see if the result has the distance attribute', function (done) {
+		var yelpFetch = require('../libs/yelpDriver');
+		var cb = sinon.spy();
+		yelpFetch.getAll({
+					location: {lat: 34.052234, lng: -118.243685},
+					filterType: 'newamerican'
+				}, cb)
+			expect(cb).to.have.property("distance");
+			done();
+	});
 	// it('soon as you arrive on the first page, your session id is set', function (done) {
 	// 	var app = express();
 	// 	//note must have a local mongo instance for this to run.
