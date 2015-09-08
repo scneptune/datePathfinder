@@ -53,9 +53,11 @@ module.exports = function(grunt) {
     mochaTest: {
       test: {
         options: {
+          run: true,
           reporter: 'spec',
           quiet: false,
-          clearRequireCache: true
+          clearRequireCache: true,
+          url: 'http://localhost:9001'
         },
         src: ['tests/*.js']
       }
