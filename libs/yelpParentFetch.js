@@ -2,33 +2,63 @@
 // Method to make yelp Requests.
 "use strict";
 var child = require('child_process');
-var exec = child.exec,
+var exec = child.exec, //not used, yet
 	spawn = child.spawn;
 var JSONStream = require('pixl-json-stream');
+var mongoChildProcess, yelpProcess, stream, dbActPrepare;
 
-var childProcess = spawn('node', ['libs/yelpChildFetch.js', 'child'],
-	{stdio: ['pipe', 'pipe', 'pipe']}
-);
-
-var stream = new JSONStream(childProcess.stdout, childProcess.stdin);
-
-stream.on('json', function (data) {
-	console.log(data);
-	childProcess.kill();
-});
-
+var ioStream = {stdio: ['pipe', 'pipe', 'pipe']};
 var sampleSearch = {
 					location: {lat: 34.052234, lng: -118.243685},
 					filterType: 'newamerican'
 				};
 
-stream.write(sampleSearch);
+module.exports = function (inputObj, yelpChildCallback) {
+	if (inputObj == null)  {
+		return yelpChildCallback('Missing query params to request Yelp results');
+	}
+	yelpProcess = spawn('node', ['libs/yelpChildFetch.js', 'child'], ioStream);
+	stream = new JSONStream(yelpProcess.stdout, yelpProcess.stdin);
+	stream.on('json', yelpCallback);
+	stream.write(inputObj);
 
-// Listen for any errors:
-childProcess.stderr.on('end', function (data) {
-    console.log('There was an error: ' + data);
-});
+	// Listen for any errors:
+	yelpProcess.stderr.on('data', function (data) {
+	    yelpChildCallback('There was an error inside Yelp Child Process: ' + data);
+	    return yelpProcess.kill();
+	});
 
-childProcess.stdout.on('end', function (err) {
-	childProcess.kill();
-})
+	yelpProcess.stdout.on('end', function () {
+		return yelpProcess.kill();
+	});
+
+	function yelpCallback (yelpResult) {
+		if (yelpResult.noresults) {
+			console.log(yelpResult);
+			//do something here to go back and refetch this category with a different term
+			yelpChildCallback('category is not present');
+		} else {
+		dbActPrepare = {
+			locationName: yelpResult.name,
+			locationImage: yelpResult.image_url,
+			streetAddress: yelpResult.location.display_address.join(', '),
+			lastModified: Date.now(),
+			rating: yelpResult.rating,
+			category: inputObj.filterType,
+			pagelink: yelpResult.url,
+			locationDescription: yelpResult.snippet_text,
+			location: {
+				lat: yelpResult.location.coordinate.latitude,
+				lng: yelpResult.location.coordinate.longitude
+			}
+		};
+			yelpChildCallback(null, dbActPrepare);
+		}
+		return yelpProcess.kill();
+	};
+
+
+}
+
+
+

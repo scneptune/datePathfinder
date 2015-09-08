@@ -39,13 +39,12 @@ var yelpApi = {
         self.oauthTokenSecret,
         function (error, data, response) {
           var result;
-          if(!error){
-            data = JSON.parse(data);
-            result = data;
+          if(!error && data){
+            return callback(null, JSON.parse(data));
           } else {
-            result = {error: error};
+            return callback(error);
           }
-          callback(result);
+
         }
       );
   }
