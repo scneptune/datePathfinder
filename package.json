@@ -38,6 +38,7 @@
     "pixl-json-stream": "^1.0.1",
     "q": "^1.4.1",
     "querystring": "^0.2.0",
+    "request": "^2.61.0",
     "sinon": "^1.16.1",
     "sinon-chai": "^2.8.0",
     "strawman": "0.0.1",
