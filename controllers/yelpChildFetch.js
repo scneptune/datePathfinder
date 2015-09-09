@@ -6,8 +6,7 @@ process.stdin.setEncoding('utf8');
 process.stderr.setEncoding('utf8');
 
 var JSONStream = require('pixl-json-stream'),
-	yelpChild = require('./yelpdriver'),
-	Q = require('q');
+	yelpChild = require('../libs/yelpdriver');
 
 var stream = new JSONStream(process.stdin, process.stdout);
 

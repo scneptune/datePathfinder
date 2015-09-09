@@ -17,7 +17,7 @@ module.exports = function (inputObj, yelpChildCallback) {
 	if (inputObj == null)  {
 		return yelpChildCallback('Missing query params to request Yelp results');
 	}
-	yelpProcess = spawn('node', ['libs/yelpChildFetch.js', 'child'], ioStream);
+	yelpProcess = spawn('node', ['controllers/yelpChildFetch.js', 'child'], ioStream);
 	stream = new JSONStream(yelpProcess.stdout, yelpProcess.stdin);
 	stream.on('json', yelpCallback);
 	stream.write(inputObj);
