@@ -32,6 +32,7 @@ var MongoClient = require('mongodb').MongoClient;
 describe('Basic module testing function', function () {
 	var db;
   	var StoreStub;
+  	var yelpFetch;
 
 	beforeEach(function() {
 	    db = strawman({
@@ -48,6 +49,7 @@ describe('Basic module testing function', function () {
 
 	    StoreStub = function() {};
 	    StoreStub.prototype = { connectMongoDB: 1 };
+	    yelpFetch = require('../libs/yelpdriver');
   	});
 
 	it('connects up to the mongo database', function () {
@@ -61,7 +63,6 @@ describe('Basic module testing function', function () {
 	});
 
 	it('run yelpFetch and see if the results have length and the results to contain a businesses key', function (done) {
-		var yelpFetch = require('../libs/yelpDriver');
 		yelpFetch.getAll({
 					location: {lat: 34.052234, lng: -118.243685},
 					filterType: 'newamerican'
@@ -72,11 +73,10 @@ describe('Basic module testing function', function () {
 			expect(data.businesses).to.have.length;
 			done();
 		}
-
 	});
 
 	it('will throw an error when running the parent Yelp process without the query params.', function (done) {
-		return require('../libs/yelpParentFetch')(null, function (err, success) {
+		return require('../controllers/yelpParentFetch')(null, function (err, success) {
 			expect(err).not.to.be.null;
 			expect(err).to.equal('Missing query params to request Yelp results');
 			expect(success).to.be.undefined;
@@ -85,7 +85,7 @@ describe('Basic module testing function', function () {
 	})
 
 	it('will run the yelpFetch Command inside of the yelpChildCommand as called by the yelpParent command', function (done) {
-		return require('../libs/yelpParentFetch')({
+		return require('../controllers/yelpParentFetch')({
 					location: {lat: 34.052234, lng: -118.243685},
 					filterType: 'newamerican'
 				}, function (err, success) {
@@ -97,7 +97,6 @@ describe('Basic module testing function', function () {
 	});
 
 	it('is able to determine when a experience does not exist in the area nearby', function (done) {
-		var yelpFetch = require('../libs/yelpDriver');
 		return yelpFetch.getAll({
 					location: {lat: 39.192618, lng: -94.937325},
 					filterType: 'chinese',
@@ -105,10 +104,57 @@ describe('Basic module testing function', function () {
 				}, function (err, output){
 					expect(err).to.be.null;
 					expect(output.total).to.be.equal(0);
-
 					done();
 				});
-	})
+	});
+
+	it('is able to make google api place request', function (done) {
+		var placesDriver = require('../libs/placesdriver');
+		return placesDriver.getPlace({
+			name: "Los Angeles Public Library Downtown",
+			location: {lat: 34.052234, lng: -118.243685}
+		}, function (err, output) {
+			expect(err).to.be.null;
+			//address for the LA public library
+			expect(output.address).to.be.equal('630 W 5th St, Los Angeles, CA 90071, United States');
+			done();
+		});
+	});
+
+	it('is able to connect to the gracenote API and pull a list of movies.', function (done) {
+		var graceNote = require('../libs/gracenoteDriver');
+		var queryObj = {
+			date: '2015-09-07',
+			location: {lat: 34.052234, lng: -118.243685}
+		}
+		graceNote.getMovieTimes(queryObj, function (err, result) {
+			expect(err).to.be.null;
+			expect(result).to.be.an('object');
+			expect(result).to.include.keys('title');
+			expect(result.showtimes).to.have.length;
+			expect(result.showtimes[0]).to.include.keys('location');
+			console.log(result);
+			done();
+		});
+	});
+
+	//This driver isn't used, it's too slow for our purposes.
+	// it('is able to make a request to the omdb and return a combined result', function (done) {
+	// 	var omdbDriver = require('../libs/omdbdriver');
+	// 	// omdbDriver.currentMovie = {};
+	// 	expect(omdbDriver.currentMovie).to.be.empty;
+	// 	return omdbDriver.getMovie({
+	// 				t: 'Star Wars',
+	// 				y: 1977,
+	// 				r: 'json'
+	// 			}, function (err, successObj) {
+	// 				expect(err).to.be.null;
+	// 				expect(omdbDriver.currentMovie).to.have.length;
+	// 				expect(omdbDriver.currentMovie).to.include.keys('urlPoster');
+	// 				done();
+	// 			});
+	// });
+
 
 	it('gets a 200 response on load the index', function () {
 		var app = require('../app.js');
