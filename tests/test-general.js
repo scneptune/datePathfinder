@@ -76,7 +76,7 @@ describe('Basic module testing function', function () {
 	});
 
 	it('will throw an error when running the parent Yelp process without the query params.', function (done) {
-		return require('../controllers/yelpParentFetch')(null, function (err, success) {
+		return require('../controllers/yelpParentFetch').fetchYelp(null, function (err, success) {
 			expect(err).not.to.be.null;
 			expect(err).to.equal('Missing query params to request Yelp results');
 			expect(success).to.be.undefined;
@@ -85,7 +85,7 @@ describe('Basic module testing function', function () {
 	})
 
 	it('will run the yelpFetch Command inside of the yelpChildCommand as called by the yelpParent command', function (done) {
-		return require('../controllers/yelpParentFetch')({
+		return require('../controllers/yelpParentFetch').fetchYelp({
 					location: {lat: 34.052234, lng: -118.243685},
 					filterType: 'newamerican'
 				}, function (err, success) {
@@ -100,7 +100,7 @@ describe('Basic module testing function', function () {
 		return yelpFetch.getAll({
 					location: {lat: 39.192618, lng: -94.937325},
 					filterType: 'chinese',
-					distance: 4000
+					distance: 1000
 				}, function (err, output){
 					expect(err).to.be.null;
 					expect(output.total).to.be.equal(0);
@@ -121,39 +121,151 @@ describe('Basic module testing function', function () {
 		});
 	});
 
-	it('is able to connect to the gracenote API and pull a list of movies.', function (done) {
-		var graceNote = require('../libs/gracenoteDriver');
-		var queryObj = {
-			date: '2015-09-07',
-			location: {lat: 34.052234, lng: -118.243685}
-		}
-		graceNote.getMovieTimes(queryObj, function (err, result) {
+	// hit api limit;
+	// it('is able to connect to the gracenote API and pull a list of movies.', function (done) {
+	// 	var graceNote = require('../libs/gracenoteDriver');
+	// 	var queryObj = {
+	// 		date: '2015-09-07',
+	// 		location: {lat: 34.052234, lng: -118.243685}
+	// 	}
+	// 	graceNote.getMovieTimes(queryObj, function (err, result) {
+	// 		expect(err).to.be.null;
+	// 		expect(result).to.be.an('object');
+	// 		expect(result).to.include.keys('title');
+	// 		expect(result.showtimes).to.have.length;
+	// 		expect(result.showtimes[0]).to.include.keys('location');
+	// 		// console.log(result);
+	// 		done();
+	// 	});
+	// });
+
+	//ARGGGHHH I hit my api limit rate.
+	// it('is able to utilize the eventParentFetch to input the location and set events to movies.', function (done){
+	// 	var sampleInput = {
+	// 		filterType: 'movie',
+	// 		location: {
+	// 			lat: 34.052234,
+	// 			lng: -118.243685
+	// 		}
+	// 	};
+	// 	require('../controllers/eventParentFetch')(sampleInput, function (err, result) {
+	// 		if (err) return console.log(err);
+	// 		console.log(result);
+	// 		expect(err).to.be.null;
+	// 		done();
+	// 	})
+	// });
+
+	it('test the sorting of popularity of the events results', function (){
+		var songKick = require('../libs/songkickdriver.js');
+		var sampleResults = {
+			event : [
+			{popularity: 0.0654},{popularity: 0.25},{popularity: 9.65},
+			{popularity: 0.0544},{popularity: 0.3678},{popularity: 0.3675}
+			]
+		};
+		var finalSortedArr = songKick.sortPopularEvent(sampleResults);
+		expect(finalSortedArr).to.have.length;
+		expect(finalSortedArr[0].popularity).to.equal(9.65);
+		expect(finalSortedArr[5].popularity).to.equal(0.0544);
+	});
+
+	it('test our ability to make a request on the metro Area', function (done) {
+		var songKick = require('../libs/songkickdriver.js');
+		var metroAreaId = 2846; //seattle metro area
+		return songKick.getEventCalendar(metroAreaId, function (err, successData) {
 			expect(err).to.be.null;
-			expect(result).to.be.an('object');
-			expect(result).to.include.keys('title');
-			expect(result.showtimes).to.have.length;
-			expect(result.showtimes[0]).to.include.keys('location');
-			console.log(result);
-			done();
+			expect(successData.event).to.have.length;
+			expect(successData.event).to.be.an('array');
+			return done();
 		});
 	});
 
-	//This driver isn't used, it's too slow for our purposes.
-	// it('is able to make a request to the omdb and return a combined result', function (done) {
-	// 	var omdbDriver = require('../libs/omdbdriver');
-	// 	// omdbDriver.currentMovie = {};
-	// 	expect(omdbDriver.currentMovie).to.be.empty;
-	// 	return omdbDriver.getMovie({
-	// 				t: 'Star Wars',
-	// 				y: 1977,
-	// 				r: 'json'
-	// 			}, function (err, successObj) {
-	// 				expect(err).to.be.null;
-	// 				expect(omdbDriver.currentMovie).to.have.length;
-	// 				expect(omdbDriver.currentMovie).to.include.keys('urlPoster');
-	// 				done();
-	// 			});
-	// });
+
+	it('is able to make a request to songkick, make an additional request with a metro id and then give us a list of events', function (done) {
+		var songKick = require('../libs/songkickdriver.js');
+		// sample location object
+		var inputParams = {
+			location: {
+				lat: 47.6097,
+				lng: -122.3331
+			}
+		};
+		return songKick.getEventResult(inputParams, function (err, successData) {
+			expect(err).to.be.null;
+			if (err) return console.error(err);
+			expect(successData.event).to.have.length;
+			expect(successData.event[0]).to.include.keys('displayName');
+			expect(successData.event[0]).to.include.keys('venue');
+			return done();
+		})
+	});
+
+	it('will run the getEventResults Command inside of the eventChildCommand as called by the eventParent command.', function (done) {
+		return require('../controllers/eventParentFetch').fetchEvent({
+			filterType: 'event',
+			location: {	lat: 30.2500, lng: -97.7500 }
+		}, function (err, success) {
+			expect(err).to.be.null;
+			if (err) return console.error(err);
+			expect(success.pagelink).to.be.a('string');
+			expect(success.rating).to.be.a('number');
+			return done();
+		});
+	});
+
+	it('do zoos exist in san diego?? ', function (done) {
+		return require('../controllers/yelpParentFetch').fetchYelp({
+					location: {
+						lat: 32.842674,
+						lng: -117.257767
+					},
+					filterType: 'zoos'
+				}, function (err, success) {
+					expect(err).to.be.null;
+					expect(success).to.exist;
+					expect(success).to.be.an('object');
+					expect(success.category).to.equal('zoos');
+					done();
+				});
+	});
+
+
+	it('will run and receive all the results for all the drivers above.', function (done) {
+		var dbResults = require('../controllers/aggregateDrivers');
+		var userInfo = {
+			act1: {
+				filterType: 'zoos',
+				location: {
+					lat: 32.842674,
+					lng: -117.257767,
+				}
+			},
+			act2: {
+				filterType: 'mexican',
+				location: {
+					lat: 32.842674,
+					lng: -117.257767,
+				}
+			},
+			act3: {
+				filterType: 'event',
+				location: {
+					lat: 32.842674,
+					lng: -117.257767,
+				}
+			}
+		}
+		dbResults(userInfo, function (err, finalResults) {
+			expect(err).to.be.null;
+			// console.log(finalResults);
+			expect(finalResults).to.be.an('array');
+			expect(finalResults.length).to.be.equal(3);
+			expect(finalResults[0].category).to.be.equal('zoos');
+			return done();
+		});
+
+	});
 
 
 	it('gets a 200 response on load the index', function () {
@@ -182,6 +294,24 @@ describe('Basic module testing function', function () {
 	// 		}
 	// 	});
 
+	// });
+
+
+	//This driver isn't used, it's too slow for our purposes.
+	// it('is able to make a request to the omdb and return a combined result', function (done) {
+	// 	var omdbDriver = require('../libs/omdbdriver');
+	// 	// omdbDriver.currentMovie = {};
+	// 	expect(omdbDriver.currentMovie).to.be.empty;
+	// 	return omdbDriver.getMovie({
+	// 				t: 'Star Wars',
+	// 				y: 1977,
+	// 				r: 'json'
+	// 			}, function (err, successObj) {
+	// 				expect(err).to.be.null;
+	// 				expect(omdbDriver.currentMovie).to.have.length;
+	// 				expect(omdbDriver.currentMovie).to.include.keys('urlPoster');
+	// 				done();
+	// 			});
 	// });
 
 });
