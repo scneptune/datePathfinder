@@ -11,15 +11,12 @@ var JSONStream = require('pixl-json-stream'),
 var stream = new JSONStream(process.stdin, process.stdout);
 
 return stream.on('json', function (queryParam) {
-	// return stream.write({error: queryParam});
 		return yelpDriver.getAll(queryParam, function (err, output) {
 			if (err) {
-
 				//give us back the error from inside the yelpDriver
 				return stream.write({error: err}), process.exit();
 			} else if (output.total > 0 && output.businesses.length) {
 				var finalBusiness = randomResult(output.businesses);
-
 				//port this data back to the stream handler which inturn sends this back to the parent process.
 				return stream.write(finalBusiness), process.exit();
 			} else if (output.total == 0) {
