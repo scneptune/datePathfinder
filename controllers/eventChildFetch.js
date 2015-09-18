@@ -42,8 +42,8 @@ return stream.on('json', function (requestStream) {
 
 	function limitResultTopRandom(resultsObj) {
 		if (resultsObj.event.length) {
-			var halfTopList = Math.ceil((resultsObj.event.length - 1) / 2);
-			return Math.floor((Math.random() * halfTopList) + 1);
+			var halfTopList = Math.ceil((resultsObj.event.length) / 2);
+			return Math.floor((Math.random() * halfTopList));
 		}
 	};
 });
