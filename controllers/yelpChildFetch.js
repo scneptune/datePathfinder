@@ -6,35 +6,44 @@ process.stdin.setEncoding('utf8');
 process.stderr.setEncoding('utf8');
 
 var JSONStream = require('pixl-json-stream'),
-	yelpChild = require('../libs/yelpdriver');
+	yelpDriver = require('../libs/yelpdriver');
 
 var stream = new JSONStream(process.stdin, process.stdout);
 
-stream.on('json', function (queryParam) {
-		yelpChild.getAll(queryParam, function (err, output) {
+return stream.on('json', function (queryParam) {
+	// return stream.write({error: queryParam});
+		return yelpDriver.getAll(queryParam, function (err, output) {
 			if (err) {
+
 				//give us back the error from inside the yelpDriver
-				return process.stderr.write(err);
+				return stream.write({error: err}), process.exit();
 			} else if (output.total > 0 && output.businesses.length) {
 				var finalBusiness = randomResult(output.businesses);
+
 				//port this data back to the stream handler which inturn sends this back to the parent process.
-				stream.write(finalBusiness);
+				return stream.write(finalBusiness), process.exit();
 			} else if (output.total == 0) {
-				stream.write({noresults : true})
+				return stream.write({noresults : true}), process.exit();
 			} else {
 				//final default which is an error because we never got a response with a wellformed json object
-				process.stderr.write(err);
+				return stream.write({error: output}), process.exit();
 			}
 
 			//run this function to make sure we don't pull a closed business result to save it.
 			function randomResult(businessList) {
-				var selectedBusiness;
-				do {
-					var randomIndex;
+				var selectedBusiness, randomIndex, reducedArray;
 					randomIndex = (Math.floor(Math.random() * businessList.length) + 1);
 					selectedBusiness = businessList[randomIndex];
-				} while (selectedBusiness.is_closed);
-				return selectedBusiness;
+				if (selectedBusiness) {
+					if (selectedBusiness.hasOwnProperty('is_closed') && selectedBusiness.is_closed) {
+					reducedArray = businessList.pop(selectedBusiness);
+					return randomResult(reducedArray);
+					} else {
+						return selectedBusiness;
+					}
+				} else {
+					return randomResult(businessList);
+				}
 			}
 	});
 });
