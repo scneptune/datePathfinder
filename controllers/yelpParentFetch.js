@@ -42,7 +42,7 @@ module.exports = {
 		function yelpCallback (yelpResult) {
 			if (yelpResult.noresults) {
 				//do something here to go back and refetch this category with a different term
-				return yelpChildCallback('category is not present'), yelpProcess.kill();
+				return yelpChildCallback('category: ' + inputObj.filterType + ' is not present. \n this is the output: '+ yelpResult.output), yelpProcess.kill();
 			} else if (yelpResult.error) {
 				return yelpChildCallback('error inside the child' + yelpResult.error), yelpProcess.kill();
 			} else {
