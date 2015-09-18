@@ -16,20 +16,6 @@ module.exports = {
 		if (movieQuery == null) return movieCallback('Missing Query Params');
 		var self = this;
 		var matchedMovie;
-
-		function mapShowtimes(iterTheatre, showtimesCallback) {
-
-			//TODO: refactor on that ish for child processes, to offload the strain on the main thread.
-			return gPlaces.getPlace({
-					name: iterTheatre.theatre.name,
-					location: movieQuery.location
-				}, function (err, theatreObj) {
-					if (err) return showCallback(err);
-					var combinedTheatre = objectAssign(theatreObj, iterTheatre);
-					return showtimesCallback(null, combinedTheatre);
-				});
-		};
-
 		return request.get({
 				url: "http://data.tmsapi.com/v1.1/movies/showings",
 				qs: {
@@ -61,6 +47,23 @@ module.exports = {
 				} else {
 					return movieCallback(JSON.parse(body));
 				}
+
+				function mapShowtimes(iterTheatre, showtimesCallback) {
+					//find a way to pass the theatre location object into each one of these mapShowtimes.
+					//TODO: refactor on that ish for child processes, to offload the strain on the main thread.
+					return gPlaces.getPlace({
+							name: iterTheatre.theatre.name,
+							location: movieQuery.location
+						}, function (err, theatreObj) {
+							if (err) return showCallback(err);
+							var combinedTheatre = objectAssign(theatreObj, iterTheatre);
+							//move the name field out of the mapped name.
+							combinedTheatre.name = iterTheatre.theatre.name;
+							return showtimesCallback(null, combinedTheatre);
+					});
+				};
+
+
 			});
 	}
 };
