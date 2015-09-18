@@ -56,6 +56,8 @@ module.exports = function(grunt) {
           run: true,
           reporter: 'spec',
           quiet: false,
+          log: true,
+          logErrors: true,
           clearRequireCache: true,
           url: 'http://localhost:9001'
         },
@@ -68,7 +70,7 @@ module.exports = function(grunt) {
       //  tasks: ['jshint:gruntfile']
       // },
       src: {
-        files: ['public/less/*.less', 'views/*.ejs', 'tests/*.js', 'public/javascripts/*.js'],
+        files: ['public/less/*.less', 'views/*.ejs', 'tests/*.js', 'controllers/*.js', 'public/javascripts/*.js'],
         tasks: ['default']
       },
       options: {
