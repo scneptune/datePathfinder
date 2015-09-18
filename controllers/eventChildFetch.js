@@ -1,64 +1,49 @@
+#!/usr/bin/env node
+process.stdin.resume();
+process.stdout.setEncoding('utf8');
+process.stdin.setEncoding('utf8');
+process.stderr.setEncoding('utf8');
+
  var env = require('node-env-file');
  	//call in our secret env
  	env(__dirname + '/../.env');
-var request = require('request'),
-	Date = require('../libs/dateFormatter'),
-	querystring = require('querystring'),
-	objectAssign = require('object-assign'),
+var Date = require('../libs/dateFormatter'),
+	songKick = require('../libs/songkickdriver'),
+	graceNote = require('../libs/gracenotedriver'),
 	JSONStream = require('pixl-json-stream');
-var graceNote = require('../libs/gracenotedriver'),
-	stream, todaysDate;
 
-	todaysDate = new Date();
-	stream = new JSONStream(process.stdout, process.stdin);
-	stream.on('json', fetchEvent);
+	var todaysDate = new Date(),
+		stream = new JSONStream(process.stdin, process.stdout);
 
-function fetchEvent(requestStream) {
-	console.log(requestStream, 'object after passed to child event');
-if (requestStream.searchType == 'movie') {
-	return graceNote.getMovieTimes({location: requestStream.location}, function (err, finalMovieObj) {
-		if (!err) {
-		return stream.write(selectedMovie);
-		} else {
-			stream.write({error: err});
-		}
-	});
+return stream.on('json', function (requestStream) {
 
-} else if (requestStream.searchType == "event") {
-	//Set the metro area which our location resides in
-	var metroAreaResults, currentCityMetro;
-		return request.get({
-			url: 'http://api.songkick.com/api/3.0/search/locations.json',
-			qs: {
-				location: 'geo:' + requestStream.location.lat+',' +requestStream.location.lng,
-				apikey:process.env.SONGKICK_KEY
-			},
-			encoding: 'utf8',
-			gzip: true
-		}, function (err, resp, body) {
-			if (err) return process.stderr.write(err);
-			metroAreaResults = JSON.parse(body);
-				if (metroAreaResults.resultsPage.results.location.length == 0) return process.stderr.write('No events found near location');
-				// select the first location from the metroArea list because it will be closest proximity to our events.
-				currentCityMetro = metroAreaResults.resultsPage.results.location[0];
-					//ok now we've found our metroarea id, now lets request the calendar.
-					console.log(currentCityMetro.metroArea.id);
-					//make another request.
-					getEventCalendar(currentCityMetro.metroArea.id);
+	if (requestStream.filterType == 'movie') {
+		return graceNote.getMovieTimes({location: requestStream.location}, function (err, finalMovieObj) {
+			if (!err) {
+				return stream.write(finalMovieObj), process.exit();
+			} else {
+				return stream.write({error: err}), process.exit();
+			}
 		});
 
-		function getEventCalendar(theatreId) {
-			return	request.get({
-						url: 'http://api.songkick.com/api/3.0/metro_areas/' + theatreId + '/calendar.json',
-						qs: {apikey: process.env.SONGKICK_KEY},
-						encoding: 'utf8',
-						gzip: true
-					}, function (err, resp, body) {
-						if (err) return process.stderr.write(err);
-						resultCalendar = JSON.parse(body).resultsPage.results.event;
+	} else if (requestStream.filterType == "event") {
+		return songKick.getEventResult(requestStream, function (err, finalEventCalendar) {
+			// process.stderr.write(JSON.stringify(finalEventCalendar));
+			var selectRandomTopIndex;
 
-						console.log(resultCalendar);
-					})
-		}
+			if (!err) {
+				selectRandomTopIndex = limitResultTopRandom(finalEventCalendar);
+				return stream.write(finalEventCalendar.event[selectRandomTopIndex]), process.exit();
+			} else {
+				return stream.write({error: err}), process.exit();
+			}
+		});
 	}
-};
+
+	function limitResultTopRandom(resultsObj) {
+		if (resultsObj.event.length) {
+			var halfTopList = Math.ceil((resultsObj.event.length - 1) / 2);
+			return Math.floor((Math.random() * halfTopList) + 1);
+		}
+	};
+});
