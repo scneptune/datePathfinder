@@ -18,52 +18,25 @@ var chai = require('chai'),
 
 var express = require('express'),
 	request = require('supertest'),
-	cookieParser = require('cookie-parser'),
-	session = require('express-session'),
-	strawman = require('strawman'),
-	mongoSession = require('connect-mongo')(session),
-	fs = require('fs');
-var http = require('http');
-var https = require('https');
+	cookieParser = require('cookie-parser');
+	// session = require('express-session');
 
-var MongoClient = require('mongodb').MongoClient;
-
-
-describe('Basic module testing function', function () {
-	var db;
-  	var StoreStub;
-  	var yelpFetch;
+describe('Api Drivers & child processes', function () {
+  	var yelpFetch, placesDriver, yelpParent, songKick, eventParent, aggregateResults;
 
 	beforeEach(function() {
-	    db = strawman({
-	      collection: { argumentNames: ['collection'], chain: true },
-	      ensureIndex: { argumentNames: ['index', 'options', 'callback'] },
-	      findOne: { argumentNames: ['query', 'callback'] },
-	      remove: { argumentNames: ['query', 'callback'] },
-	      update: { argumentNames: ['query', 'update', 'options', 'callback' ] }
-	    });
-
-	    MongoClient.connect = function(uri, options, callback) {
-	      process.nextTick(function() { callback(null, db); });
-	    };
-
-	    StoreStub = function() {};
-	    StoreStub.prototype = { connectMongoDB: 1 };
+		yelpParent = require('../controllers/yelpParentFetch');
 	    yelpFetch = require('../libs/yelpdriver');
+	    placesDriver = require('../libs/placesdriver');
+	    songKick = require('../libs/songkickdriver.js');
+	    eventParent = require('../controllers/eventParentFetch');
+	    aggregateResults = require('../controllers/aggregateDrivers');
   	});
 
-	it('connects up to the mongo database', function () {
-		var mongoUrl = 'mongodb://localhost:27017/dateapp';
-		MongoClient.connect(mongoUrl, function (err, db) {
-			should.equal(null, err);
-			console.log('Made a valid connection to the mongo database');
-			db.close();
-		});
 
-	});
 
 	it('run yelpFetch and see if the results have length and the results to contain a businesses key', function (done) {
-		yelpFetch.getAll({
+		return yelpFetch.getAll({
 					location: {lat: 34.052234, lng: -118.243685},
 					filterType: 'newamerican'
 				}, output);
@@ -76,7 +49,7 @@ describe('Basic module testing function', function () {
 	});
 
 	it('will throw an error when running the parent Yelp process without the query params.', function (done) {
-		return require('../controllers/yelpParentFetch').fetchYelp(null, function (err, success) {
+		return yelpParent.fetchYelp(null, function (err, success) {
 			expect(err).not.to.be.null;
 			expect(err).to.equal('Missing query params to request Yelp results');
 			expect(success).to.be.undefined;
@@ -85,7 +58,7 @@ describe('Basic module testing function', function () {
 	})
 
 	it('will run the yelpFetch Command inside of the yelpChildCommand as called by the yelpParent command', function (done) {
-		return require('../controllers/yelpParentFetch').fetchYelp({
+		return yelpParent.fetchYelp({
 					location: {lat: 34.052234, lng: -118.243685},
 					filterType: 'newamerican'
 				}, function (err, success) {
@@ -109,7 +82,6 @@ describe('Basic module testing function', function () {
 	});
 
 	it('is able to make google api place request', function (done) {
-		var placesDriver = require('../libs/placesdriver');
 		return placesDriver.getPlace({
 			name: "Los Angeles Public Library Downtown",
 			location: {lat: 34.052234, lng: -118.243685}
@@ -157,7 +129,6 @@ describe('Basic module testing function', function () {
 	// });
 
 	it('test the sorting of popularity of the events results', function (){
-		var songKick = require('../libs/songkickdriver.js');
 		var sampleResults = {
 			event : [
 			{popularity: 0.0654},{popularity: 0.25},{popularity: 9.65},
@@ -171,7 +142,6 @@ describe('Basic module testing function', function () {
 	});
 
 	it('test our ability to make a request on the metro Area', function (done) {
-		var songKick = require('../libs/songkickdriver.js');
 		var metroAreaId = 2846; //seattle metro area
 		return songKick.getEventCalendar(metroAreaId, function (err, successData) {
 			expect(err).to.be.null;
@@ -183,7 +153,6 @@ describe('Basic module testing function', function () {
 
 
 	it('is able to make a request to songkick, make an additional request with a metro id and then give us a list of events', function (done) {
-		var songKick = require('../libs/songkickdriver.js');
 		// sample location object
 		var inputParams = {
 			location: {
@@ -202,7 +171,7 @@ describe('Basic module testing function', function () {
 	});
 
 	it('will run the getEventResults Command inside of the eventChildCommand as called by the eventParent command.', function (done) {
-		return require('../controllers/eventParentFetch').fetchEvent({
+		return eventParent.fetchEvent({
 			filterType: 'event',
 			location: {	lat: 30.2500, lng: -97.7500 }
 		}, function (err, success) {
@@ -215,7 +184,7 @@ describe('Basic module testing function', function () {
 	});
 
 	it('do zoos exist in san diego?? ', function (done) {
-		return require('../controllers/yelpParentFetch').fetchYelp({
+		return yelpParent.fetchYelp({
 					location: {
 						lat: 32.842674,
 						lng: -117.257767
@@ -232,7 +201,6 @@ describe('Basic module testing function', function () {
 
 
 	it('will run and receive all the results for all the drivers above.', function (done) {
-		var dbResults = require('../controllers/aggregateDrivers');
 		var userInfo = {
 			act1: {
 				filterType: 'zoos',
@@ -256,7 +224,7 @@ describe('Basic module testing function', function () {
 				}
 			}
 		}
-		dbResults(userInfo, function (err, finalResults) {
+		return aggregateResults(userInfo, function (err, finalResults) {
 			expect(err).to.be.null;
 			// console.log(finalResults);
 			expect(finalResults).to.be.an('array');
@@ -266,7 +234,6 @@ describe('Basic module testing function', function () {
 		});
 
 	});
-
 
 	it('gets a 200 response on load the index', function () {
 		var app = require('../app.js');
