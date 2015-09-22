@@ -23,7 +23,7 @@ var yelpApi = {
       params = {
           'll': [parseFloat(queryObj.location.lat), parseFloat(queryObj.location.lng)].join(','),
           'category_filter': queryObj.filterType,
-          'radius_filter': (queryObj.distance || 8000),
+          'radius_filter': (queryObj.distance || 16093),
           'limit': 10
         };
       return querystring.stringify(params);
@@ -39,13 +39,12 @@ var yelpApi = {
         self.oauthTokenSecret,
         function (error, data, response) {
           var result;
-          if(!error){
-            data = JSON.parse(data);
-            result = data;
+          if(!error && data){
+            return callback(null, JSON.parse(data));
           } else {
-            result = {error: error};
+            return callback({error: response});
           }
-          callback(result);
+
         }
       );
   }

@@ -23,12 +23,8 @@ var UserSchema = new Schema({
 });
 
 UserSchema.pre('save', function (next){
-		var now = new Date();
-		this.lastModified = now;
-		if (!this.lastModified) {
-			this.lastModified = currentDate;
-		}
-
+	var now = new Date();
+	this.lastModified = now;
 	next();
 });
 

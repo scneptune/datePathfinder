@@ -20,6 +20,7 @@ laid-back
 	- mediation: meditationcenters
 	- botanical gardens : gardens
 	- farmers market: farmersmarket
+	- beaches: beaches
 
 ## RESTAURANTS
 classic:
