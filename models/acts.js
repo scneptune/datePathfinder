@@ -30,6 +30,6 @@ var actsSchema = new Schema({
 // 	}
 // }
 
-return mongoose.model('acts', actsSchema);
+module.exports = mongoose.model('acts', actsSchema);
 
 
